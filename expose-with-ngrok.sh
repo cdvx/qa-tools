@@ -26,13 +26,13 @@ NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].publi
 # ngrok URL
 echo "application is available at: $NGROK_URL"
 
-# when user terminats app, clean up
+# when user terminates app, clean up
 read -p "Press ENTER to stop ngrok and shut down Docker Compose..."
 
 
 kill $NGROK_PID
 
-# clean upp
+# clean up
 docker-compose -f $DOCKER_COMPOSE_FILE down
 
 echo "application stopped."
