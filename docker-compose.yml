@@ -1,0 +1,43 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:12.8
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'app'
+      PGDATA: /mnt/pgdata
+    volumes:
+      - './db/init:/docker-entrypoint-initdb.d'
+      - './config/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf:ro'
+    command:
+      - postgres
+      - '-c'
+      - 'config_file=/etc/postgresql/postgresql.conf'
+    networks:
+      - db
+  web:
+    image: '1med/app:3.14.6-11439-g88aa31ec0'
+    restart: on-failure
+    environment:
+      PORT: 80
+      HOST: '127.0.0.1'
+      ERLANG_COOKIE: 'cookie'
+      MIX_ENV: "prod"
+    env_file: './config.env'
+    healthcheck:
+      test: ['CMD', 'app', 'ping']
+    volumes:
+      - './log:/usr/local/log'
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    ports:
+      - '8080:80'
+    networks:
+      - db
+    entrypoint: ["sh", "-c", "sleep 15 && /sbin/tini -- ./bin/app foreground"]
+
+networks:
+  db: {}
